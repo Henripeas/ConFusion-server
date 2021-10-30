@@ -5,20 +5,28 @@ const BodyParser = require('body-parser');
 
 PromoRouter.use(BodyParser.json());
 
+
+//get all promotions
 PromoRouter.route('/')
     .get((req, res, next)=>{
         Promotions.find({})
             .then((promotions) =>{
-                res.statusCode = 200,
-                console.log("Operation Successfull");
-                res.json(promotions)
+                if(promotions != null){
+                    res.statusCode = 200,
+                    console.log("Operation Successfull");
+                    res.json(promotions)
+                }else{
+                    err = new Error("Operation get All promotion failed  not found")
+                    err.statusCode = 404;
+                    return next(err)
+                }
             }, (err) => next(err))
             .catch((err)=>next(err))
     })
     .put((req, res, next)=>{
         res.statusCode = 403;
-        console.log("")
-        res.end("Operation no supported /promotions")
+        console.log("Operation not supported /promotions")
+        res.end("Operation not supported /promotions")
     })
     .post((req, res, next)=>{
         Promotions.create(req.body)
@@ -32,9 +40,19 @@ PromoRouter.route('/')
    .delete((req, res, next)=>{
        Promotions.remove({})
         .then((resp)=>{
-            res.statusCode = 200;
-            console.log('Delete All promotions is done');
-            res.json(resp)
+            if(resp == null){
+                err = new Error("promotions details not found");
+                err.statusCode = 404;
+                return next(err)
+            }else if(resp != null ){
+                res.statusCode = 200;
+                console.log('Delete All promotions is done');
+                res.json(resp)
+            }else {
+                err = new Error("promotions details not found");
+                err.statusCode = 404;
+                return next(err)
+            }
         }, (err)=>next(err))
         .catch((err)=>next(err))
    }) 
@@ -61,14 +79,20 @@ PromoRouter.route('/:promoId')
     })
     .post((req, res, next)=>{
         res.statusCode = 403;
-        res.end("Operation no supported /promotions")
+        res.end("Operation no supported /promotions by promoId : " + req.params.promoId)
     })
     .delete((req, res, next)=>{
         Promotions.findByIdAndRemove(req.params.promoId)
                 .then((resp)=>{
-                    res.statusCode = 200;
-                    console.log("Delete promotions by Id :" + req.params.promoId)
-                    res.json(resp)
+                    if(resp != null){
+                        res.statusCode = 200;
+                         console.log("Delete promotions by Id :" + req.params.promoId)
+                         res.json(resp)
+                    }else{
+                        err = new Error("Id promotion " + req.params.promoId + " not found");
+                        err.statusCode = 404;
+                        return next(err)
+                    }
                 },(err)=>next(err))
                 .catch((err)=>next(err))
     })
